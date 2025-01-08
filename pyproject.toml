@@ -1,0 +1,12 @@
+[project]
+name = "fastapi_p1"
+version = "0.1.0"
+description = "FastAPI Adventure"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi[standard]>=0.115.6",
+]
+
+[tool.ruff]
+[tool.ruff.format]
+quote-style = "single"
