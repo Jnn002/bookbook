@@ -20,7 +20,7 @@ class BookCreateModel(BaseModel):
     title: str
     author: str
     publisher: str
-    published_date: date  # check later, might need to be datetime or str
+    published_date: str
     page_count: int
     language: str
 

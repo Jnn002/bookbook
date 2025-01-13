@@ -14,7 +14,7 @@ async def life_span(app: FastAPI):
     print('stopping app')
 
 
-version = '0.1.0'
+version = '0.2.0'
 
 app = FastAPI(version=version, lifespan=life_span)
 
