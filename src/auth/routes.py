@@ -1,12 +1,13 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 
 from src.db.main import get_session
+from src.db.redis import add_jti_to_blocklist
 
-from .dependencies import RefreshTokenBearer
+from .dependencies import AccessTokenBearer, RefreshTokenBearer
 from .schemas import UserCreateModel, UserLoginModel, UserModel
 from .service import UserService
 from .utils import create_access_token, verify_password
@@ -71,9 +72,23 @@ async def login_users(login_data: UserLoginModel, session=Depends(get_session)):
 @auth_router.get('/refresh_token')
 async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer())):
     expiry_timestamp = token_details['exp']
-    if datetime.fromtimestamp(expiry_timestamp) > datetime.now():
+    if datetime.fromtimestamp(expiry_timestamp, tz=timezone.utc) > datetime.now(
+        timezone.utc
+    ):
         new_access_token = create_access_token(
             user_data=token_details['user'], refresh=False
         )
         return JSONResponse(content={'access_token': new_access_token})
-    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='Invalid token')
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST, detail='Sorry, invalid token'
+    )
+
+
+@auth_router.get('/logout')
+async def revoke_token(token_details: dict = Depends(AccessTokenBearer())):
+    jti = token_details['jti']
+
+    await add_jti_to_blocklist(jti)
+    return JSONResponse(
+        content={'message': 'You have logged out'}, status_code=status.HTTP_200_OK
+    )

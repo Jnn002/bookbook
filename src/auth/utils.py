@@ -9,7 +9,7 @@ from src.config import Config
 
 password_context = CryptContext(schemes=['bcrypt'])
 
-ACCESS_TOKEN_EXPIRY = 1200
+ACCESS_TOKEN_EXPIRY = 2700
 
 
 def generate_password_hash(password: str) -> str:
@@ -52,9 +52,11 @@ def decode_token(token: str):
         token_data = jwt.decode(
             jwt=token, key=Config.JWT_SECRET, algorithms=[Config.JWT_ALGORITHM]
         )
-
         return token_data
 
-    except jwt.PyJWTError as e:
-        logging.exception(e)
+    except jwt.ExpiredSignatureError as e:
+        logging.exception(f'Token expired: {e}')
+        return None
+    except jwt.InvalidTokenError as e:
+        logging.exception(f'Invalid token: {e}')
         return None
