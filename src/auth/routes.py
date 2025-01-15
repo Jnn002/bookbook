@@ -45,13 +45,16 @@ async def create_user_account(user_data: UserCreateModel, session=Depends(get_se
 async def login_users(login_data: UserLoginModel, session=Depends(get_session)):
     email = login_data.email
     password = login_data.password
+    # consulta a la base de datos
 
     user = await user_service.get_user_by_email(email, session)
 
     if user is not None:
+        # verificar la contraseña que se ingreso con la que esta en la base de datos
         password_valid = verify_password(password, user.password_hash)
 
         if password_valid:
+            # crear el token de acceso
             access_token = create_access_token(
                 user_data={
                     'email': user.email,
@@ -59,7 +62,7 @@ async def login_users(login_data: UserLoginModel, session=Depends(get_session)):
                     'role': user.role,
                 },
             )
-
+            # crear el token de refresh
             refresh_token = create_access_token(
                 user_data={
                     'email': user.email,
@@ -69,13 +72,13 @@ async def login_users(login_data: UserLoginModel, session=Depends(get_session)):
                 refresh=True,
                 expiry=timedelta(days=REFRESH_TOKEN_EXPIRY),
             )
-
+            # retornar el token de acceso y el token de refresh
             return JSONResponse(
                 content={
                     'message': 'Login succesful',
                     'access_token': access_token,
                     'refresh_token': refresh_token,
-                    'user': {'email': user.email},
+                    'user': {'email': user.email, 'user_uid': str(user.uid)},
                 }
             )
     raise HTTPException(
@@ -98,7 +101,8 @@ async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer(
     )
 
 
-@auth_router.get('/me')
+# we are getting our current user and their own related books that they have submitted
+@auth_router.get('/me', response_model=UserModel)
 async def get_current_user(user=Depends(get_current_userd)):
     return user
 

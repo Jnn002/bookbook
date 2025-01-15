@@ -1,3 +1,12 @@
+"""THIS MODULE CONTAINS DEPENDENCIES FOR AUTHENTICATION AND AUTHORIZATION
+DEPENDENCIES:
+    - TokenBearer: Base class for token validation
+    - AccessTokenBearer: Validates access tokens
+    - RefreshTokenBearer: Validates refresh tokens
+    - get_current_userd: Dependency for getting the current user
+    - RoleChecker: Dependency for checking user roles
+"""
+
 from fastapi import Depends, Request, status
 from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPBearer
@@ -15,13 +24,42 @@ user_service = UserService()
 
 
 class TokenBearer(HTTPBearer):
+    """Base class for token validation
+    Args:
+        auto_error (bool, optional): [description]. Defaults to True.
+
+    Returns:
+        HTTPAuthorizationCredentials | None: [description]
+
+    Raises:
+        HTTPException: [description]
+
+    """
+
     def __init__(self, auto_error=True):
         super().__init__(auto_error=auto_error)
 
     # Request) -> HTTPAuthorizationCredentials | None
     async def __call__(self, request: Request) -> HTTPAuthorizationCredentials:
+        """[summary]
+        Args:
+            request (Request): [description]
+
+        Returns:
+            HTTPAuthorizationCredentials | None: [description]
+
+        Raises:
+            HTTPException: [description
+
+        We are obtaining the token from the request header and decoding it
+
+        """
+        # HTTPBearer busca el header 'Authorization: Bearer <token>'
         creds = await super().__call__(request)
 
+        # creds.credentials contiene el token raw
+        # Ejemplo: Si el header es "Authorization: Bearer abc123"
+        # creds.credentials = "abc123"
         if creds is None:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -52,6 +90,7 @@ class TokenBearer(HTTPBearer):
 
         self.verify_token_data(token_data)
 
+        # * We return the token data to be used in the route
         return token_data
 
     # TODO: debug this method, until that this method will be suspended

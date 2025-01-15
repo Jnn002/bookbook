@@ -3,7 +3,9 @@ from datetime import date, datetime
 from typing import Optional
 
 import sqlalchemy.dialects.postgresql as pg
-from sqlmodel import Column, Field, SQLModel
+from sqlmodel import Column, Field, Relationship, SQLModel
+
+from src.auth import models
 
 
 class Book(SQLModel, table=True):
@@ -19,6 +21,7 @@ class Book(SQLModel, table=True):
     language: str
     created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now()))
     updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now()))
+    user: Optional['models.User'] = Relationship(back_populates='books')
 
     def __repr__(self):
         return f'<Book {self.title}>'

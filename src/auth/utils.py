@@ -32,14 +32,14 @@ def create_access_token(
         expire_token_time = datetime.now(timezone.utc) + timedelta(
             seconds=ACCESS_TOKEN_EXPIRY
         )
-
+    # payload cargado con los datos del usuario
     payload = {
         'user': user_data,
         'exp': expire_token_time,
         'jti': str(uuid.uuid4()),
         'refresh': refresh,
     }
-
+    # encodeamos el token
     token = jwt.encode(
         payload=payload, key=Config.JWT_SECRET, algorithm=Config.JWT_ALGORITHM
     )
@@ -49,6 +49,7 @@ def create_access_token(
 
 def decode_token(token: str):
     try:
+        # token contiene los datos del usuario, cómo expiración, id, etc
         token_data = jwt.decode(
             jwt=token, key=Config.JWT_SECRET, algorithms=[Config.JWT_ALGORITHM]
         )
