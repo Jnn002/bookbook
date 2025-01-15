@@ -60,3 +60,6 @@ def decode_token(token: str):
     except jwt.InvalidTokenError as e:
         logging.exception(f'Invalid token: {e}')
         return None
+    except jwt.PyJWTError as e:
+        logging.exception(f'Error decoding token: {e}')
+        return None
