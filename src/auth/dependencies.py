@@ -13,10 +13,10 @@ from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.db.main import get_session
+from src.db.models import User
 from src.db.redis import token_in_blocklist
 
-from ..db.main import get_session
-from .models import User
 from .service import UserService
 from .utils import decode_token
 

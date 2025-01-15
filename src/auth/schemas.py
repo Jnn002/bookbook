@@ -24,7 +24,10 @@ class UserModel(BaseModel):
     password_hash: str = Field(exclude=True)
     created_at: datetime
     updated_at: datetime
-    books: list[Book]  # relationship
+
+
+class UserBooksModel(UserModel):
+    books: list[Book]
 
 
 class UserLoginModel(BaseModel):

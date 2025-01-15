@@ -13,7 +13,7 @@ from .dependencies import (
     RoleChecker,
     get_current_userd,
 )
-from .schemas import UserCreateModel, UserLoginModel, UserModel
+from .schemas import UserBooksModel, UserCreateModel, UserLoginModel, UserModel
 from .service import UserService
 from .utils import create_access_token, verify_password
 
@@ -102,7 +102,7 @@ async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer(
 
 
 # we are getting our current user and their own related books that they have submitted
-@auth_router.get('/me', response_model=UserModel)
+@auth_router.get('/me', response_model=UserBooksModel)
 async def get_current_user(user=Depends(get_current_userd)):
     return user
 
