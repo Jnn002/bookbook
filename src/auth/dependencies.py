@@ -7,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.redis import token_in_blocklist
 
 from ..db.main import get_session
+from .models import User
 from .service import UserService
 from .utils import decode_token
 
@@ -87,3 +88,16 @@ async def get_current_userd(
     user = await user_service.get_user_by_email(user_email, session)
 
     return user
+
+
+class RoleChecker:
+    def __init__(self, allow_roles: list[str]):
+        self.allow_roles = allow_roles
+
+    def __call__(self, current_user: User = Depends(get_current_userd)):
+        if current_user.role in self.allow_roles:
+            return True
+
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail='Insufficient Permissions'
+        )

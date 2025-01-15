@@ -7,13 +7,19 @@ from fastapi.responses import JSONResponse
 from src.db.main import get_session
 from src.db.redis import add_jti_to_blocklist
 
-from .dependencies import AccessTokenBearer, RefreshTokenBearer, get_current_userd
+from .dependencies import (
+    AccessTokenBearer,
+    RefreshTokenBearer,
+    RoleChecker,
+    get_current_userd,
+)
 from .schemas import UserCreateModel, UserLoginModel, UserModel
 from .service import UserService
 from .utils import create_access_token, verify_password
 
 auth_router = APIRouter()
 user_service = UserService()
+role_checker = RoleChecker(['admin', 'user'])
 
 REFRESH_TOKEN_EXPIRY = 2
 
@@ -47,11 +53,19 @@ async def login_users(login_data: UserLoginModel, session=Depends(get_session)):
 
         if password_valid:
             access_token = create_access_token(
-                user_data={'email': user.email, 'user_uid': str(user.uid)}
+                user_data={
+                    'email': user.email,
+                    'user_uid': str(user.uid),
+                    'role': user.role,
+                },
             )
 
             refresh_token = create_access_token(
-                user_data={'email': user.email, 'user_uid': str(user.uid)},
+                user_data={
+                    'email': user.email,
+                    'user_uid': str(user.uid),
+                    'role': user.role,
+                },
                 refresh=True,
                 expiry=timedelta(days=REFRESH_TOKEN_EXPIRY),
             )
@@ -90,7 +104,9 @@ async def get_current_user(user=Depends(get_current_userd)):
 
 
 @auth_router.get('/logout')
-async def revoke_token(token_details: dict = Depends(AccessTokenBearer())):
+async def revoke_token(
+    token_details: dict = Depends(AccessTokenBearer()), _: bool = Depends(role_checker)
+):
     jti = token_details['jti']
 
     await add_jti_to_blocklist(jti)
