@@ -6,7 +6,7 @@ from src.auth.dependencies import AccessTokenBearer, RoleChecker
 from src.books.service import BookService
 
 from ..db.main import get_session
-from .schemas import Book, BookCreateModel, BookUpdateModel
+from .schemas import Book, BookCreateModel, BookDetailModel, BookUpdateModel
 
 role_checker = Depends(RoleChecker(['admin', 'user']))
 
@@ -55,7 +55,9 @@ async def create_a_book(
     return new_book
 
 
-@book_router.get('/{book_uid}', response_model=Book, dependencies=[role_checker])
+@book_router.get(
+    '/{book_uid}', response_model=BookDetailModel, dependencies=[role_checker]
+)
 async def get_book(
     book_uid: str,
     session: AsyncSession = Depends(get_session),

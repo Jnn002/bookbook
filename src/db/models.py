@@ -20,7 +20,9 @@ class User(SQLModel, table=True):
     password_hash: str = Field(exclude=True)
     created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now()))
     updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now()))
-    reviews: list['Review'] = Relationship(back_populates='user')
+    reviews: list['Review'] = Relationship(
+        back_populates='user', sa_relationship_kwargs={'lazy': 'selectin'}
+    )
     books: list['Book'] = Relationship(
         back_populates='user', sa_relationship_kwargs={'lazy': 'selectin'}
     )
@@ -43,7 +45,9 @@ class Book(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now()))
     updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now()))
     user: Optional['User'] = Relationship(back_populates='books')
-    reviews: list['Review'] = Relationship(back_populates='book')
+    reviews: list['Review'] = Relationship(
+        back_populates='book', sa_relationship_kwargs={'lazy': 'selectin'}
+    )
 
     def __repr__(self):
         return f'<Book {self.title}>'

@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 from src.books.schemas import Book
+from src.reviews.schemas import ReviewModel
 
 
 class UserCreateModel(BaseModel):
@@ -28,6 +29,7 @@ class UserModel(BaseModel):
 
 class UserBooksModel(UserModel):
     books: list[Book]
+    reviews: list[ReviewModel]
 
 
 class UserLoginModel(BaseModel):
