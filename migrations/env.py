@@ -7,9 +7,11 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from sqlmodel import SQLModel
 
-from src.auth.models import User  # noqa: F401
-from src.books.models import Book  # noqa: F401
 from src.config import Config
+from src.db.models import (
+    Book,  # noqa: F401
+    User,  # noqa: F401
+)
 
 database_url = Config.DATABASE_URL
 

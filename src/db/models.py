@@ -20,6 +20,7 @@ class User(SQLModel, table=True):
     password_hash: str = Field(exclude=True)
     created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now()))
     updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now()))
+    reviews: list['Review'] = Relationship(back_populates='user')
     books: list['Book'] = Relationship(
         back_populates='user', sa_relationship_kwargs={'lazy': 'selectin'}
     )
@@ -42,6 +43,24 @@ class Book(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now()))
     updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now()))
     user: Optional['User'] = Relationship(back_populates='books')
+    reviews: list['Review'] = Relationship(back_populates='book')
 
     def __repr__(self):
         return f'<Book {self.title}>'
+
+
+class Review(SQLModel, table=True):
+    uid: uuid.UUID = Field(
+        sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4)
+    )
+    rating: int = Field(lt=6)
+    review_text: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
+    user_uid: Optional[uuid.UUID] = Field(default=None, foreign_key='user.uid')
+    book_uid: Optional[uuid.UUID] = Field(default=None, foreign_key='book.uid')
+    created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+    updated_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+    user: Optional[User] = Relationship(back_populates='reviews')
+    book: Optional[Book] = Relationship(back_populates='reviews')
+
+    def __repr__(self):
+        return f'<Review for book {self.book_uid} by user {self.user_uid}>'
