@@ -7,8 +7,7 @@ DEPENDENCIES:
     - RoleChecker: Dependency for checking user roles
 """
 
-from fastapi import Depends, Request, status
-from fastapi.exceptions import HTTPException
+from fastapi import Depends, Request
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -16,6 +15,13 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
 from src.db.models import User
 from src.db.redis import token_in_blocklist
+from src.errors import (
+    AccessTokenRequired,
+    InsufficientPermission,
+    InvalidCredentials,
+    InvalidToken,
+    RefreshTokenRequired,
+)
 
 from .service import UserService
 from .utils import decode_token
@@ -61,42 +67,21 @@ class TokenBearer(HTTPBearer):
         # Ejemplo: Si el header es "Authorization: Bearer abc123"
         # creds.credentials = "abc123"
         if creds is None:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail='Invalid authorization credentials',
-            )
+            raise InvalidCredentials()
 
         token = creds.credentials
         token_data = decode_token(token)
 
-        # TODO: Debug this validation to check for redundant token validation
-        """ if not self.token_valid(token):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail='Invalid or expired token(1)',
-            ) """
-
         if not token_data:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail='Invalid or expired token(2)',
-            )
+            raise InvalidToken()
 
         if await token_in_blocklist(token_data['jti']):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail='Token has been revoked or has expired',
-            )
+            raise InvalidToken()
 
         self.verify_token_data(token_data)
 
         # * We return the token data to be used in the route
         return token_data
-
-    # TODO: debug this method, until that this method will be suspended
-    """ def token_valid(self, token: str) -> bool:
-        token_data = decode_token(token)
-        return True if token_data is not None else False """
 
     def verify_token_data(self, token_data):
         raise NotImplementedError('Subclasses must implement this method')
@@ -105,17 +90,13 @@ class TokenBearer(HTTPBearer):
 class AccessTokenBearer(TokenBearer):
     def verify_token_data(self, token_data: dict) -> None:
         if token_data and token_data['refresh']:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail='Access Token Required'
-            )
+            raise AccessTokenRequired()
 
 
 class RefreshTokenBearer(TokenBearer):
     def verify_token_data(self, token_data: dict) -> None:
         if token_data and not token_data['refresh']:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail='Refresh Token Required'
-            )
+            raise RefreshTokenRequired()
 
 
 async def get_current_userd(
@@ -137,6 +118,4 @@ class RoleChecker:
         if current_user.role in self.allow_roles:
             return True
 
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail='Insufficient Permissions'
-        )
+        raise InsufficientPermission()

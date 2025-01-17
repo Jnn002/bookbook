@@ -5,6 +5,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.books.service import BookService
 from src.db.models import Tag
+from src.errors import TagAlreadyExists, TagNotFound
 
 from .schemas import TagCreateModel
 
@@ -36,7 +37,7 @@ class TagService:
         tag = result.first()
 
         if tag:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+            raise TagAlreadyExists()
 
         new_tag_dict = tag_data.model_dump()
         new_tag = Tag(**new_tag_dict)
@@ -52,7 +53,8 @@ class TagService:
     ):
         tag = await self.get_tag_by_uid(tag_uid, session)
         if not tag:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+            raise TagNotFound()
+
         update_data_dict = tag_update_data.model_dump()
 
         for k, v in update_data_dict.items():
@@ -69,7 +71,7 @@ class TagService:
         tag = await self.get_tag_by_uid(tag_uid, session)
 
         if not tag:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+            raise TagNotFound()
 
         await session.delete(tag)
         await session.commit()

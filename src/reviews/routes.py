@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.dependencies import RoleChecker, get_current_userd
 from src.db.main import get_session
 from src.db.models import User
+from src.errors import ReviewNotFound
 
 from .schemas import ReviewCreateModel, ReviewModel
 from .service import ReviewService
@@ -49,9 +50,7 @@ async def get_review(review_uid: str, session: AsyncSession = Depends(get_sessio
     if review:
         return review
     else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='Review not found'
-        )
+        raise ReviewNotFound()
 
 
 @review_router.delete('/delete/{review_uid}', dependencies=[user_role_checker])
