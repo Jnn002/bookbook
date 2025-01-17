@@ -3,6 +3,7 @@ from datetime import date, datetime
 from typing import Optional
 
 import sqlalchemy.dialects.postgresql as pg
+from sqlalchemy import ForeignKey
 from sqlmodel import Column, Field, Relationship, SQLModel
 
 
@@ -31,6 +32,16 @@ class User(SQLModel, table=True):
         return f'<User {self.username}>'
 
 
+class BookTag(SQLModel, table=True):
+    book_uid: uuid.UUID = Field(
+        sa_column=Column(pg.UUID, ForeignKey('book.uid'), primary_key=True)
+    )
+    tag_uid: uuid.UUID = Field(
+        sa_column=Column(pg.UUID, ForeignKey('tag.uid'), primary_key=True)
+    )
+    created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now()))
+
+
 class Book(SQLModel, table=True):
     uid: uuid.UUID = Field(
         sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4)
@@ -48,16 +59,37 @@ class Book(SQLModel, table=True):
     reviews: list['Review'] = Relationship(
         back_populates='book', sa_relationship_kwargs={'lazy': 'selectin'}
     )
+    tags: list['Tag'] = Relationship(
+        link_model=BookTag,
+        back_populates='books',
+        sa_relationship_kwargs={'lazy': 'selectin'},
+    )
 
     def __repr__(self):
         return f'<Book {self.title}>'
+
+
+class Tag(SQLModel, table=True):
+    uid: uuid.UUID = Field(
+        sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4)
+    )
+    name: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
+    created_at: datetime = Field(sa_column=Column(pg.TIMESTAMP, default=datetime.now))
+    books: list['Book'] = Relationship(
+        link_model=BookTag,
+        back_populates='tags',
+        sa_relationship_kwargs={'lazy': 'selectin'},
+    )
+
+    def __repr__(self):
+        return f'<Tag {self.name}>'
 
 
 class Review(SQLModel, table=True):
     uid: uuid.UUID = Field(
         sa_column=Column(pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4)
     )
-    rating: int = Field(lt=6)
+    rating: int = Field(ge=1, lt=6)
     review_text: str = Field(sa_column=Column(pg.VARCHAR, nullable=False))
     user_uid: Optional[uuid.UUID] = Field(default=None, foreign_key='user.uid')
     book_uid: Optional[uuid.UUID] = Field(default=None, foreign_key='book.uid')
