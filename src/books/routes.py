@@ -25,6 +25,23 @@ async def get_all_books(
     return books
 
 
+@book_router.get(
+    '/{book_uid}', response_model=BookDetailModel, dependencies=[role_checker]
+)
+async def get_book(
+    book_uid: str,
+    session: AsyncSession = Depends(get_session),
+    token_detail: dict = Depends(access_token_bearer),
+):
+    book = await book_service.get_book(book_uid, session)
+    if book:
+        return book
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail='Book not found'
+        )
+
+
 # TODO: Posible refactorización para que el usuario pueda ver los libros sus propios libros creados
 @book_router.get(
     '/user/{user_uid}', response_model=list[Book], dependencies=[role_checker]
@@ -53,23 +70,6 @@ async def create_a_book(
     user_uid = token_detail['user']['user_uid']
     new_book = await book_service.create_book(book_data, session, user_uid)
     return new_book
-
-
-@book_router.get(
-    '/{book_uid}', response_model=BookDetailModel, dependencies=[role_checker]
-)
-async def get_book(
-    book_uid: str,
-    session: AsyncSession = Depends(get_session),
-    token_detail: dict = Depends(access_token_bearer),
-):
-    book = await book_service.get_book(book_uid, session)
-    if book:
-        return book
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='Book not found'
-        )
 
 
 @book_router.patch('/{book_uid}', response_model=Book, dependencies=[role_checker])

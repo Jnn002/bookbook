@@ -1,5 +1,6 @@
 from fastapi import status
 from fastapi.exceptions import HTTPException
+from sqlmodel import desc, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.service import UserService
@@ -49,3 +50,33 @@ class ReviewService:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
             )
+
+    async def get_all_reviews(self, session: AsyncSession):
+        statement = select(Review).order_by(desc(Review.created_at))
+
+        result = await session.exec(statement)
+        return result.all()
+
+    async def get_review(self, review_uid: str, session: AsyncSession):
+        statement = select(Review).where(Review.uid == review_uid)
+
+        result = await session.exec(statement)
+        return result.first()
+
+    # TODO: let only owner of the review or admin delete it
+    async def delete_review_from_book(
+        self, review_uid: str, user_email: str, session: AsyncSession
+    ):
+        user = await user_service.get_user_by_email(user_email, session)
+
+        review = await self.get_review(review_uid, session)
+
+        # Check if review exists and if the user is the owner
+        if not review or (review.user != user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail='Review not found or you are not the owner',
+            )
+
+        await session.delete(review)
+        await session.commit()

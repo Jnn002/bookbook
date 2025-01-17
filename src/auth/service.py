@@ -27,6 +27,7 @@ class UserService:
         new_user = User(**user_data_dict)
         # TODO: Hash the password before saving
         new_user.password_hash = generate_password_hash(user_data_dict['password'])
+        # TODO: Implement a role system
         new_user.role = 'user'
 
         session.add(new_user)
