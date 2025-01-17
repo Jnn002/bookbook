@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth.dependencies import RoleChecker
+from src.books.schemas import Book
 from src.db.main import get_session
 
-from .schemas import TagCreateModel, TagModel
+from .schemas import TagAddModel, TagCreateModel, TagModel
 from .service import TagService
 
 tags_router = APIRouter()
@@ -50,3 +51,16 @@ async def update_tag(
 async def delete_tag(tag_uid: str, session: AsyncSession = Depends(get_session)):
     await tag_service.delete_tag(tag_uid, session)
     return {'message': 'Tag deleted successfully'}
+
+
+@tags_router.post(
+    '/book/{book_uid}/tags', response_model=Book, dependencies=[user_role_checker]
+)
+async def add_tags_to_book(
+    book_uid: str, tag_data: TagAddModel, session: AsyncSession = Depends(get_session)
+):
+    book_with_tag = await tag_service.add_tags_to_book(
+        book_uid=book_uid, tag_data=tag_data, session=session
+    )
+
+    return book_with_tag

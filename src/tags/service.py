@@ -1,3 +1,6 @@
+import uuid
+from datetime import datetime
+
 from fastapi import status
 from fastapi.exceptions import HTTPException
 from sqlmodel import desc, select
@@ -5,9 +8,9 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.books.service import BookService
 from src.db.models import Tag
-from src.errors import TagAlreadyExists, TagNotFound
+from src.errors import BookNotFound, TagAlreadyExists, TagNotFound
 
-from .schemas import TagCreateModel
+from .schemas import TagAddModel, TagCreateModel
 
 book_service = BookService()
 
@@ -24,6 +27,29 @@ class TagService:
         result = await session.exec(statement)
 
         return result.all()
+
+    async def add_tags_to_book(
+        self, book_uid: str, tag_data: TagAddModel, session: AsyncSession
+    ):
+        book = await book_service.get_book(book_uid=book_uid, session=session)
+
+        if not book:
+            raise BookNotFound()
+
+        for tag_item in tag_data.tags:
+            result = await session.exec(select(Tag).where(Tag.name == tag_item.name))
+
+            tag = result.one_or_none()
+            if not tag:
+                tag = Tag(
+                    name=tag_item.name, uid=uuid.uuid4(), created_at=datetime.now()
+                )
+
+            book.tags.append(tag)
+        session.add(book)
+        await session.commit()
+        await session.refresh(book)
+        return book
 
     async def get_tag_by_uid(self, tag_uid: str, session: AsyncSession):
         statement = select(Tag).where(Tag.uid == tag_uid)
