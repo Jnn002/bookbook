@@ -9,6 +9,7 @@ dependencies = [
     "bcrypt==4.0.1",
     "fastapi-mail>=1.4.2",
     "fastapi[standard]>=0.115.6",
+    "itsdangerous>=2.2.0",
     "passlib>=1.7.4",
     "pydantic-settings>=2.7.1",
     "pyjwt>=2.10.1",

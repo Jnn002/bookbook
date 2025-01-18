@@ -3,11 +3,13 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 import jwt
+from itsdangerous import URLSafeTimedSerializer
 from passlib.context import CryptContext
 
 from src.config import Config
 
 password_context = CryptContext(schemes=['bcrypt'])
+serializer = URLSafeTimedSerializer(secret_key=Config.JWT_SECRET, salt='email-config')
 
 ACCESS_TOKEN_EXPIRY = 2700
 
@@ -63,4 +65,19 @@ def decode_token(token: str):
         return None
     except jwt.PyJWTError as e:
         logging.exception(f'Error decoding token: {e}')
+        return None
+
+
+def create_url_safe_token(data: dict):
+    token = serializer.dumps(data)
+
+    return token
+
+
+def decode_url_safe_token(token: str):
+    try:
+        token_data = serializer.loads(token)
+        return token_data
+    except Exception as e:
+        logging.error(f'Error decoding token: {e}')
         return None
