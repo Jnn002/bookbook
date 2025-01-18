@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from src.db.main import get_session
 from src.db.redis import add_jti_to_blocklist
 from src.errors import InvalidCredentials, InvalidToken, UserAlreadyExists
+from src.mail import create_message, mail
 
 from .dependencies import (
     AccessTokenBearer,
@@ -13,7 +14,13 @@ from .dependencies import (
     RoleChecker,
     get_current_userd,
 )
-from .schemas import UserBooksModel, UserCreateModel, UserLoginModel, UserModel
+from .schemas import (
+    EmailModel,
+    UserBooksModel,
+    UserCreateModel,
+    UserLoginModel,
+    UserModel,
+)
 from .service import UserService
 from .utils import create_access_token, verify_password
 
@@ -110,3 +117,11 @@ async def revoke_token(
     return JSONResponse(
         content={'message': 'You have logged out'}, status_code=status.HTTP_200_OK
     )
+
+
+@auth_router.post('/send_mail')
+async def send_mail(emails: EmailModel):
+    html = '<h1>Mail test</h1>'
+    message = create_message(recipients=emails.addresses, subject='Test', body=html)
+    await mail.send_message(message)
+    return {'message': 'Email sent'}
