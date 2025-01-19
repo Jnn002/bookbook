@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, BackgroundTasks, Depends, status
 from fastapi.responses import JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from src.celery_tasks import send_email_tsk
 from src.config import Config
 from src.db.main import get_session
 from src.db.redis import add_jti_to_blocklist
@@ -46,8 +47,23 @@ role_checker = RoleChecker(['admin', 'user'])
 REFRESH_TOKEN_EXPIRY = 2
 
 
+@auth_router.post('/send_mail')
+async def send_mail(emails: EmailModel):
+    email_list = emails.addresses
+    html = '<h1>Mail test</h1>'
+    subject = 'Welcome to BookWorld'
+
+    send_email_tsk.delay(email_list, subject, html)  # type: ignore
+
+    return {'message': 'Email sent'}
+
+
 @auth_router.post('/signup', status_code=status.HTTP_201_CREATED)
-async def create_user_account(user_data: UserCreateModel, session=Depends(get_session)):
+async def create_user_account(
+    user_data: UserCreateModel,
+    background_tasks: BackgroundTasks,
+    session=Depends(get_session),
+):
     email = user_data.email
 
     user_exists = await user_service.user_exists(email, session)
@@ -58,17 +74,17 @@ async def create_user_account(user_data: UserCreateModel, session=Depends(get_se
         token = create_url_safe_token({'email': email})
         link = f'http://{Config.DOMAIN}/api/0.2.1/auth/verify/{token}'
 
-        html_message = f"""
+        emails = [email]
+        subject = 'Verify Your Email Address'
+        html = f"""
         <h1>Welcome to BookWorld</h1>
         <br/>
         <p>Thank you for signing up with us. We are glad to have you on board.</p>
         <p>Please click the <a href="{link}">link</a> below to verify your email address.</p>
         """
-        message = create_message(
-            recipients=[email], subject='Verify your Email', body=html_message
-        )
 
-        await mail.send_message(message)
+        send_email_tsk.delay(emails, subject, html)  # type: ignore
+
         return {
             'message': 'Account Created! Please check your email to verify your account',
             'user': new_user,
@@ -147,14 +163,6 @@ async def revoke_token(
     return JSONResponse(
         content={'message': 'You have logged out'}, status_code=status.HTTP_200_OK
     )
-
-
-@auth_router.post('/send_mail')
-async def send_mail(emails: EmailModel):
-    html = '<h1>Mail test</h1>'
-    message = create_message(recipients=emails.addresses, subject='Test', body=html)
-    await mail.send_message(message)
-    return {'message': 'Email sent'}
 
 
 @auth_router.get('/verify/{token}')
