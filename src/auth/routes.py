@@ -7,7 +7,13 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.config import Config
 from src.db.main import get_session
 from src.db.redis import add_jti_to_blocklist
-from src.errors import InvalidCredentials, InvalidToken, UserAlreadyExists, UserNotFound
+from src.errors import (
+    InvalidCredentials,
+    InvalidToken,
+    PasswordsDoNotMatch,
+    UserAlreadyExists,
+    UserNotFound,
+)
 from src.mail import create_message, mail
 
 from .dependencies import (
@@ -18,6 +24,8 @@ from .dependencies import (
 )
 from .schemas import (
     EmailModel,
+    PasswordResetConfirmModel,
+    PasswordResetRequestModel,
     UserBooksModel,
     UserCreateModel,
     UserLoginModel,
@@ -27,6 +35,7 @@ from .utils import (
     create_access_token,
     create_url_safe_token,
     decode_url_safe_token,
+    generate_password_hash,
     verify_password,
 )
 
@@ -168,5 +177,65 @@ async def verify_user_account(token: str, session: AsyncSession = Depends(get_se
         )
     return JSONResponse(
         content={'message': 'Somehting went wrong, please try later'},
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    )
+
+
+@auth_router.post('/password-reset-request')
+async def password_reset_request(email_data: PasswordResetRequestModel):
+    email = email_data.email
+    token = create_url_safe_token({'email': email})
+    link = f'http://{Config.DOMAIN}/api/0.2.1/auth/password-reset-confirm/{token}'
+
+    html_message = f"""
+    <h1>Reset Your Password</h1>
+    <p>Please click this <a href="{link}">link</a> to Reset Your Password</p>
+    """
+    subject = 'Reset Your Password'
+    message = create_message(recipients=[email], subject=subject, body=html_message)
+
+    await mail.send_message(message)
+
+    return JSONResponse(
+        content={
+            'message': 'Please check your email for instructions to reset your password',
+        },
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@auth_router.post('/password-reset-confirm/{token}')
+async def reset_account_password(
+    token: str,
+    passwords: PasswordResetConfirmModel,
+    session: AsyncSession = Depends(get_session),
+):
+    new_password = passwords.new_password
+    confirm_password = passwords.confirm_new_password
+
+    if new_password != confirm_password:
+        raise PasswordsDoNotMatch()
+
+    token_data = decode_url_safe_token(token)
+
+    if token_data is None:
+        raise InvalidToken()
+    user_email = token_data['email']
+
+    if user_email:
+        user = await user_service.get_user_by_email(user_email, session)
+        if not user:
+            raise UserNotFound()
+
+        passwd_hash = generate_password_hash(new_password)
+        await user_service.update_user(user, {'password_hash': passwd_hash}, session)
+
+        return JSONResponse(
+            content={'message': 'Password reset successfully'},
+            status_code=status.HTTP_200_OK,
+        )
+
+    return JSONResponse(
+        content={'message': 'Something went wrong, please try again'},
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     )

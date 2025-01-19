@@ -90,6 +90,10 @@ class AccountNotVerified(Exception):
     pass
 
 
+class PasswordsDoNotMatch(Exception):
+    """Passwords do not match"""
+
+
 def create_exception_handler(
     status_code: int, initial_detail: Any
 ) -> Callable[[Request, Exception], Any]:
@@ -244,6 +248,18 @@ def register_all_errors(app: FastAPI):
                 'message': 'Account Not verified',
                 'error_code': 'account_not_verified',
                 'resolution': 'Please check your email for verification details',
+            },
+        ),
+    )
+
+    app.add_exception_handler(
+        PasswordsDoNotMatch,
+        create_exception_handler(
+            status_code=status.HTTP_403_FORBIDDEN,
+            initial_detail={
+                'message': 'Passwords do not match',
+                'error_code': 'passwords_do_not_match',
+                'resolution': 'Type the same password in both fields',
             },
         ),
     )
