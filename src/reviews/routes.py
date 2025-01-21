@@ -14,7 +14,6 @@ from .service import ReviewService
 review_router = APIRouter()
 review_service = ReviewService()
 
-# TODO: implement role checker
 admin_role_checker = Depends(RoleChecker(['admin']))
 user_role_checker = Depends(RoleChecker(['admin', 'user']))
 
@@ -23,8 +22,8 @@ user_role_checker = Depends(RoleChecker(['admin', 'user']))
 async def add_review_to_book(
     book_uid: str,
     review_data: ReviewCreateModel,
-    current_user: User = Depends(get_current_userd),
-    session: AsyncSession = Depends(get_session),
+    current_user: Annotated[User, Depends(get_current_userd)],
+    session: Annotated[AsyncSession, Depends(get_session)],
 ):
     new_review = await review_service.add_review_to_book(
         user_email=current_user.email,
@@ -36,15 +35,16 @@ async def add_review_to_book(
     return new_review
 
 
-# TODO: implement role checking for admin users only
 @review_router.get('/', dependencies=[user_role_checker])
-async def get_all_reviews(session: AsyncSession = Depends(get_session)):
+async def get_all_reviews(session: Annotated[AsyncSession, Depends(get_session)]):
     reviews = await review_service.get_all_reviews(session)
     return reviews
 
 
 @review_router.get('/{review_uid}', response_model=ReviewModel)
-async def get_review(review_uid: str, session: AsyncSession = Depends(get_session)):
+async def get_review(
+    review_uid: str, session: Annotated[AsyncSession, Depends(get_session)]
+):
     review = await review_service.get_review(review_uid, session)
 
     if review:
@@ -57,7 +57,7 @@ async def get_review(review_uid: str, session: AsyncSession = Depends(get_sessio
 async def delete_review(
     review_uid: str,
     current_user: Annotated[User, Depends(get_current_userd)],
-    session: AsyncSession = Depends(get_session),
+    session: Annotated[AsyncSession, Depends(get_session)],
 ):
     await review_service.delete_review_from_book(
         review_uid, current_user.email, session

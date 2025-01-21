@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -18,7 +20,7 @@ access_token_bearer = AccessTokenBearer()
 
 @book_router.get('/', response_model=list[Book], dependencies=[role_checker])
 async def get_all_books(
-    session: AsyncSession = Depends(get_session),
+    session: Annotated[AsyncSession, Depends(get_session)],
     token_detail=Depends(access_token_bearer),
 ):
     books = await book_service.get_all_books(session)
@@ -30,7 +32,7 @@ async def get_all_books(
 )
 async def get_book(
     book_uid: str,
-    session: AsyncSession = Depends(get_session),
+    session: Annotated[AsyncSession, Depends(get_session)],
     token_detail: dict = Depends(access_token_bearer),
 ):
     book = await book_service.get_book(book_uid, session)
@@ -40,7 +42,6 @@ async def get_book(
         raise BookNotFound()
 
 
-# TODO: Posible refactorización para que el usuario pueda ver los libros sus propios libros creados
 @book_router.get(
     '/user/{user_uid}', response_model=list[Book], dependencies=[role_checker]
 )
@@ -49,7 +50,6 @@ async def get_user_book_submissions(
     session: AsyncSession = Depends(get_session),
     token_detail=Depends(access_token_bearer),
 ):
-    # user_uid = token_detail['user']['user_uid']
     books = await book_service.get_user_books(user_uid, session)
     return books
 
@@ -62,7 +62,7 @@ async def get_user_book_submissions(
 )
 async def create_a_book(
     book_data: BookCreateModel,
-    session: AsyncSession = Depends(get_session),
+    session: Annotated[AsyncSession, Depends(get_session)],
     token_detail: dict = Depends(access_token_bearer),
 ):  # check later > dict
     user_uid = token_detail['user']['user_uid']
@@ -74,9 +74,9 @@ async def create_a_book(
 async def update_book(
     book_uid: str,
     book_update_data: BookUpdateModel,
-    session: AsyncSession = Depends(get_session),
+    session: Annotated[AsyncSession, Depends(get_session)],
     token_detail: dict = Depends(access_token_bearer),
-):  # check later > dict
+):
     updated_book = await book_service.update_book(book_uid, book_update_data, session)
     if updated_book is None:
         raise BookNotFound()
@@ -91,7 +91,7 @@ async def update_book(
 )
 async def delete_book(
     book_uid: str,
-    session: AsyncSession = Depends(get_session),
+    session: Annotated[AsyncSession, Depends(get_session)],
     token_detail: dict = Depends(access_token_bearer),
 ):
     book_to_delete = await book_service.delete_book(book_uid, session)

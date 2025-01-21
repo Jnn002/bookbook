@@ -92,8 +92,6 @@ class TagService:
         return tag
 
     async def delete_tag(self, tag_uid: str, session: AsyncSession):
-        """Delete a tag"""
-
         tag = await self.get_tag_by_uid(tag_uid, session)
 
         if not tag:

@@ -1,12 +1,3 @@
-"""THIS MODULE CONTAINS DEPENDENCIES FOR AUTHENTICATION AND AUTHORIZATION
-DEPENDENCIES:
-    - TokenBearer: Base class for token validation
-    - AccessTokenBearer: Validates access tokens
-    - RefreshTokenBearer: Validates refresh tokens
-    - get_current_userd: Dependency for getting the current user
-    - RoleChecker: Dependency for checking user roles
-"""
-
 from fastapi import Depends, Request
 from fastapi.security import HTTPBearer
 from fastapi.security.http import HTTPAuthorizationCredentials
@@ -31,22 +22,9 @@ user_service = UserService()
 
 
 class TokenBearer(HTTPBearer):
-    """Base class for token validation
-    Args:
-        auto_error (bool, optional): [description]. Defaults to True.
-
-    Returns:
-        HTTPAuthorizationCredentials | None: [description]
-
-    Raises:
-        HTTPException: [description]
-
-    """
-
     def __init__(self, auto_error=True):
         super().__init__(auto_error=auto_error)
 
-    # Request) -> HTTPAuthorizationCredentials | None
     async def __call__(self, request: Request) -> HTTPAuthorizationCredentials:
         """[summary]
         Args:
@@ -64,9 +42,6 @@ class TokenBearer(HTTPBearer):
         # HTTPBearer busca el header 'Authorization: Bearer <token>'
         creds = await super().__call__(request)
 
-        # creds.credentials contiene el token raw
-        # Ejemplo: Si el header es "Authorization: Bearer abc123"
-        # creds.credentials = "abc123"
         if creds is None:
             raise InvalidCredentials()
 
@@ -81,7 +56,6 @@ class TokenBearer(HTTPBearer):
 
         self.verify_token_data(token_data)
 
-        # * We return the token data to be used in the route
         return token_data
 
     def verify_token_data(self, token_data):
