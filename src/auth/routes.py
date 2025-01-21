@@ -11,7 +11,6 @@ from src.db.main import get_session
 from src.db.redis import add_jti_to_blocklist
 from src.errors import (
     InvalidCredentials,
-    InvalidEmailStructure,
     InvalidToken,
     PasswordsDoNotMatch,
     UserAlreadyExists,
@@ -67,10 +66,6 @@ async def create_user_account(
     session=Depends(get_session),
 ):
     email = user_data.email
-
-    if not await user_service.check_valid_email(email):
-        raise InvalidEmailStructure()
-
     user_exists = await user_service.user_exists(email, session)
 
     if user_exists:
@@ -202,6 +197,7 @@ async def verify_user_account(
 @auth_router.post('/password-reset-request')
 async def password_reset_request(email_data: PasswordResetRequestModel):
     email = email_data.email
+
     token = create_url_safe_token({'email': email})
     link = f'http://{Config.DOMAIN}/api/0.2.1/auth/password-reset-confirm/{token}'
 

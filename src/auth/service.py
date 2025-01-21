@@ -1,5 +1,3 @@
-import re
-
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -31,10 +29,6 @@ class UserService:
         session.add(new_user)
         await session.commit()
         return new_user
-
-    async def check_valid_email(self, email: str):
-        pattern = r'^[^@]+@[^@]+\.[^@]+$'
-        return bool(re.match(pattern, email))
 
     async def update_user(self, user: User, user_data: dict, session: AsyncSession):
         for k, v in user_data.items():

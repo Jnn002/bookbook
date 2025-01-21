@@ -275,7 +275,7 @@ def register_all_errors(app: FastAPI):
         create_exception_handler(
             status_code=status.HTTP_403_FORBIDDEN,
             initial_detail={
-                'message': 'Invalid email structure',
+                'message': 'Provide a valid email',
                 'error_code': 'invalid_email_structure',
                 'resolution': 'Please provide a valid email',
             },
