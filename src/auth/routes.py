@@ -189,7 +189,7 @@ async def verify_user_account(
         )
 
     return JSONResponse(
-        content={'message': 'Somehting went wrong, please try later'},
+        content={'message': 'Something went wrong, please try later'},
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     )
 
