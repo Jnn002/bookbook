@@ -6,3 +6,4 @@ config.py
 superlab.py
 pytest.ini
 proto/
+.pytest_cache/
