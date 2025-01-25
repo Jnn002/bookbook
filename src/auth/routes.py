@@ -16,7 +16,7 @@ from src.errors import (
     UserAlreadyExists,
     UserNotFound,
 )
-from src.mail import create_message, mail
+from src.utils.template_manager import template_manager
 
 from .dependencies import (
     AccessTokenBearer,
@@ -77,12 +77,12 @@ async def create_user_account(
 
         emails = [email]
         subject = 'Verify Your Email Address'
-        html = f"""
-        <h1>Welcome to BookWorld</h1>
-        <br/>
-        <p>Thank you for signing up with us. We are glad to have you on board.</p>
-        <p>Please click the <a href="{link}">link</a> below to verify your email address.</p>
-        """
+
+        username = user_data.username
+
+        html = template_manager.render_template(
+            'verify_account.html', verification_link=link, user_name=username
+        )
 
         send_email_tsk.delay(emails, subject, html)  # type: ignore
 
@@ -201,14 +201,13 @@ async def password_reset_request(email_data: PasswordResetRequestModel):
     token = create_url_safe_token({'email': email})
     link = f'http://{Config.DOMAIN}/api/0.2.1/auth/password-reset-confirm/{token}'
 
-    html_message = f"""
-    <h1>Reset Your Password</h1>
-    <p>Please click this <a href="{link}">link</a> to Reset Your Password</p>
-    """
-    subject = 'Reset Your Password'
-    message = create_message(recipients=[email], subject=subject, body=html_message)
+    html_message = template_manager.render_template(
+        'reset_password.html', reset_link=link
+    )
 
-    await mail.send_message(message)
+    subject = 'Reset Your Password'
+
+    send_email_tsk.delay([email], subject, html_message)  # type: ignore
 
     return JSONResponse(
         content={
