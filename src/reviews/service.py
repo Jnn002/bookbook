@@ -63,7 +63,6 @@ class ReviewService:
         result = await session.exec(statement)
         return result.first()
 
-    # TODO: let only owner of the review or admin delete it
     async def delete_review_from_book(
         self, review_uid: str, user_email: str, session: AsyncSession
     ):

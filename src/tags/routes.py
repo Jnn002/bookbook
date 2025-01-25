@@ -57,7 +57,7 @@ async def delete_tag(
     return {'message': 'Tag deleted successfully'}
 
 
-@tags_router.post(
+@tags_router.patch(
     '/book/{book_uid}/tags', response_model=Book, dependencies=[user_role_checker]
 )
 async def add_tags_to_book(

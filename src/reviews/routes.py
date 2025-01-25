@@ -64,3 +64,6 @@ async def delete_review(
     )
 
     return {'message': 'Review deleted'}
+
+
+# TODO: Add update_review route

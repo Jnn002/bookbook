@@ -65,6 +65,16 @@ class EmailModel(BaseModel):
 class PasswordResetRequestModel(BaseModel):
     email: str
 
+    @field_validator('email')
+    def validate_email(cls, v):
+        from email_validator import EmailNotValidError, validate_email
+
+        try:
+            validate_email(v, check_deliverability=False)
+            return v
+        except EmailNotValidError:
+            raise InvalidEmailStructure()
+
 
 class PasswordResetConfirmModel(BaseModel):
     new_password: str
