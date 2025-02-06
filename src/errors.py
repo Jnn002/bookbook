@@ -66,6 +66,12 @@ class ReviewNotFound(BooklyException):
     pass
 
 
+class ReviewNotFoundOrUserIsNotOwner(BooklyException):
+    """Review Not FOund or User is not the owner"""
+
+    pass
+
+
 class TagNotFound(BooklyException):
     """Tag Not found"""
 
@@ -241,7 +247,18 @@ def register_all_errors(app: FastAPI):
             status_code=status.HTTP_404_NOT_FOUND,
             initial_detail={
                 'message': 'Review Not Found',
-                'error_code': 'book_not_found',
+                'error_code': 'review_not_found',
+            },
+        ),
+    )
+
+    app.add_exception_handler(
+        ReviewNotFoundOrUserIsNotOwner,
+        create_exception_handler(
+            status_code=status.HTTP_403_FORBIDDEN,
+            initial_detail={
+                'message': 'Review Not Found or You are not the owner',
+                'error_code': 'review_not_found_or_user_not_owner',
             },
         ),
     )
