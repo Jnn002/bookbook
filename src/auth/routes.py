@@ -45,8 +45,6 @@ auth_router = APIRouter()
 user_service = UserService()
 role_checker = RoleChecker(['admin', 'user'])
 
-REFRESH_TOKEN_EXPIRY = 2
-
 
 @auth_router.post('/send_mail')
 async def send_mail(emails: EmailModel):
@@ -65,6 +63,27 @@ async def create_user_account(
     background_tasks: BackgroundTasks,
     session=Depends(get_session),
 ):
+    """Create a new user account
+
+    Args:
+        user_data: UserCreateModel: User data to create a new account
+        background_tasks: BackgroundTasks: FastAPI background task
+        session: AsyncSession: Database session
+
+    Returns:
+        dict: Response message and user data
+
+    Raises:
+        UserAlreadyExists: If user with the email already exists
+
+    Services:
+        - Check if user with the email already exists
+        - Create a new user account
+        - Send verification email to the user
+            email with verification link to verify the account
+            based on jinja2 template
+
+    """
     email = user_data.email
     user_exists = await user_service.user_exists(email, session)
 
@@ -94,6 +113,21 @@ async def create_user_account(
 
 @auth_router.post('/login')
 async def login_users(login_data: UserLoginModel, session=Depends(get_session)):
+    """Login user
+    Args:
+        login_data: UserLoginModel: User login data
+        session: AsyncSession: Database session
+    Returns:
+        dict: Response message and access token
+
+    Raises:
+        InvalidCredentials: If user credentials are invalid
+
+    Services:
+        - Get user by email
+        - Verify user password
+        - Create access token
+        - Create refresh token"""
     email = login_data.email
     password = login_data.password
 
@@ -118,7 +152,8 @@ async def login_users(login_data: UserLoginModel, session=Depends(get_session)):
                     'role': user.role,
                 },
                 refresh=True,
-                expiry=timedelta(days=REFRESH_TOKEN_EXPIRY),
+                expiry=timedelta(days=Config.REFRESH_TOKEN_EXPIRY),
+                # check functionality
             )
 
             return JSONResponse(
@@ -136,6 +171,13 @@ async def login_users(login_data: UserLoginModel, session=Depends(get_session)):
 async def get_new_access_token(
     token_details: Annotated[dict, Depends(RefreshTokenBearer())],
 ):
+    """Get new access token
+    Args:
+        token_details: dict: Token details
+    Returns:
+        dict: New access token
+    Raises:
+        InvalidToken: If token is invalid"""
     expiry_timestamp = token_details['exp']
     if datetime.fromtimestamp(expiry_timestamp, tz=timezone.utc) > datetime.now(
         timezone.utc
@@ -150,6 +192,11 @@ async def get_new_access_token(
 
 @auth_router.get('/me', response_model=UserBooksModel)
 async def get_current_user(user=Depends(get_current_userd)):
+    """Get current user
+    Args:
+        user: dict: Current user data
+    Returns:
+        dict: Current user data"""
     return user
 
 
@@ -158,6 +205,18 @@ async def revoke_token(
     token_details: Annotated[dict, Depends(AccessTokenBearer())],
     _: bool = Depends(role_checker),
 ):
+    """Revoke token
+    Args:
+        token_details: dict: Token details
+    Returns:
+        dict: Response message
+    Raises:
+        InvalidToken: If token is invalid
+    Services:
+        - Add token to blocklist
+
+    will be used to revoke the token when the user logs out
+    """
     jti = token_details['jti']
 
     await add_jti_to_blocklist(jti)
@@ -170,6 +229,19 @@ async def revoke_token(
 async def verify_user_account(
     token: str, session: Annotated[AsyncSession, Depends(get_session)]
 ):
+    """Verify user account
+    Args:
+        token: str: Verification token
+        session: AsyncSession: Database session
+    Returns:
+        dict: Response message
+    Raises:
+        InvalidToken: If token is invalid
+        UserNotFound: If user is not found
+    Services:
+        - Decode token
+        - Get user by email
+        - Update user -> update account to verified"""
     token_data = decode_url_safe_token(token)
 
     if token_data is None:
@@ -196,6 +268,19 @@ async def verify_user_account(
 
 @auth_router.post('/password-reset-request')
 async def password_reset_request(email_data: PasswordResetRequestModel):
+    """Password reset request
+    Args:
+        email_data: PasswordResetRequestModel: Email data
+    Returns:
+        dict: Response message
+    Services:
+        - Create token
+        - Send email with token
+        - Render email template
+
+    will be used to send an email to the user with a link to reset their password
+    this endpoint will be used when the user forgets their password and implements a
+    celery task to send the email"""
     email = email_data.email
 
     token = create_url_safe_token({'email': email})
@@ -223,6 +308,21 @@ async def reset_account_password(
     passwords: PasswordResetConfirmModel,
     session: Annotated[AsyncSession, Depends(get_session)],
 ):
+    """Reset account password
+    Args:
+        token: str: Reset password token
+        passwords: PasswordResetConfirmModel: New password data
+        session: AsyncSession: Database session
+    Returns:
+        dict: Response message
+    Raises:
+        PasswordsDoNotMatch: If passwords do not match
+        InvalidToken: If token is invalid
+        UserNotFound: If user is not found
+    Services:
+        - Decode token
+        - Get user by email
+        - Update user -> update password"""
     new_password = passwords.new_password
     confirm_password = passwords.confirm_new_password
 
