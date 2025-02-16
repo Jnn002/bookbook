@@ -10,6 +10,9 @@ from sqlmodel import SQLModel
 from src.config import Config
 from src.db.models import (
     Book,  # noqa: F401
+    BookTag,  # noqa: F401
+    Review,  # noqa: F401
+    Tag,  # noqa: F401
     User,  # noqa: F401
 )
 
