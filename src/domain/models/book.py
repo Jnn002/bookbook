@@ -27,7 +27,6 @@ class DomainBook:
     def __post_init__(self) -> None:
         if not self.title or not self.title.strip():
             raise ValueError('Title cannot be empty')
-        # TODO: Check if empty list is allowed
         if not self.authors or not all(
             author and author.strip() for author in self.authors
         ):
@@ -40,6 +39,10 @@ class DomainBook:
             raise ValueError('Page count must be greater than 0')
         if not self.language or not self.language.strip():
             raise ValueError('Language cannot be empty')
+        if self.created_at.tzinfo is None:
+            raise ValueError('created_at must be a timezone-aware datetime object')
+        if self.updated_at.tzinfo is None:
+            raise ValueError('updated_at must be a timezone-aware datetime object')
         if self.created_at > datetime.now(timezone.utc):
             raise ValueError('Created at cannot be in the future')
         if self.updated_at < self.created_at:
