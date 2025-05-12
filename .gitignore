@@ -1,4 +1,5 @@
 .venv/
+.github/
 uv.lock
 __pycache__/
 .env
