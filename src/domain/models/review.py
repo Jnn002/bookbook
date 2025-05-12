@@ -3,6 +3,17 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional
 
+from src.domain.models.exceptions.review_exception import (
+    EmptyReview,
+    InvalidRating,
+    LengthExceeded,
+)
+from src.domain.models.exceptions.time_exceptions import (
+    FutureCreatedAtError,
+    NaiveDateTimeError,
+    UpdatedBeforeCreatedError,
+)
+
 
 @dataclass
 class DomainReview:
@@ -17,26 +28,28 @@ class DomainReview:
     def _validate_review_text(self, text_to_validate: str) -> None:
         """Validate that the review text is not empty and does not exceed 500 characters."""
         if not text_to_validate.strip():
-            raise ValueError('Review text cannot be empty')
+            raise EmptyReview('Review text cannot be empty')
         if len(text_to_validate) > 500:
-            raise ValueError('Review text cannot exceed 500 characters')
+            raise LengthExceeded('Review text exceeds 500 characters')
 
     def _validate_rating(self, rating: int) -> None:
         """Validate that the rating is between 1 and 5."""
         if not (1 <= rating <= 5):
-            raise ValueError('Rating must be between 1 and 5')
+            raise InvalidRating('Rating must be between 1 and 5')
 
     def __post_init__(self):
         self._validate_rating(self.rating)
         self._validate_review_text(self.review_text)
         if self.created_at.tzinfo is None:
-            raise ValueError('created_at must be a timezone-aware datetime object')
+            raise NaiveDateTimeError('Create Review - Datetime must be timezone-aware')
         if self.updated_at.tzinfo is None:
-            raise ValueError('updated_at must be a timezone-aware datetime object')
+            raise NaiveDateTimeError('Update Review - Datetime must be timezone-aware')
         if self.created_at > datetime.now(timezone.utc):
-            raise ValueError('Created at cannot be in the future')
+            raise FutureCreatedAtError('Review - Created at cannot be in the future')
         if self.updated_at < self.created_at:
-            raise ValueError('Updated at should be greater than or equal to created at')
+            raise UpdatedBeforeCreatedError(
+                'Review - Updated at must be greater than or equal to created at'
+            )
 
     def update_review(
         self, new_text: Optional[str] = None, new_rating: Optional[int] = None

@@ -1,6 +1,7 @@
 {
     "python.analysis.autoImportCompletions": true,
     "python.analysis.typeCheckingMode": "standard",
+    "python.analysis.exclude": [".venv/", "__pycache__/", "test"],
     "chat.promptFiles": true,
     "chat.promptFilesLocations": {
         ".github/prompts": true,

@@ -3,6 +3,21 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import Optional
 
+from src.domain.models.exceptions.book_exceptions import (
+    EmptyAuthors,
+    EmptyCoverImageUrl,
+    EmptyGoogleBookId,
+    EmptyLanguage,
+    EmptyPublisher,
+    EmptyTitle,
+    InvalidPageCount,
+    InvalidPublishedDate,
+)
+from src.domain.models.exceptions.time_exceptions import (
+    FutureCreatedAtError,
+    NaiveDateTimeError,
+    UpdatedBeforeCreatedError,
+)
 from src.domain.models.review import DomainReview
 from src.domain.models.tags import DomainTag
 
@@ -18,35 +33,41 @@ class DomainBook:
     language: str
     created_at: datetime
     updated_at: datetime
+    cover_image_url: str
+    google_book_id: str
     user_id_owner: Optional[uuid.UUID] = None
-    google_book_id: Optional[str] = None
-    cover_image_url: Optional[str] = None
     reviews: list[DomainReview] = field(default_factory=list)
     tags: list[DomainTag] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if not self.title or not self.title.strip():
-            raise ValueError('Title cannot be empty')
+            raise EmptyTitle('Book - Title cannot be empty')
         if not self.authors or not all(
             author and author.strip() for author in self.authors
         ):
-            raise ValueError('Authors cannot be empty')
+            raise EmptyAuthors('Book - Authors cannot be empty')
         if not self.publisher or not self.publisher.strip():
-            raise ValueError('Publisher cannot be empty')
+            raise EmptyPublisher('Book - Publisher cannot be empty')
         if self.published_date > date.today():
-            raise ValueError('Published date cannot be in the future')
+            raise InvalidPublishedDate('Book - Published date cannot be in the future')
         if self.page_count <= 0:
-            raise ValueError('Page count must be greater than 0')
+            raise InvalidPageCount('Book - Page count must be positive')
         if not self.language or not self.language.strip():
-            raise ValueError('Language cannot be empty')
+            raise EmptyLanguage('Book - Language cannot be empty')
         if self.created_at.tzinfo is None:
-            raise ValueError('created_at must be a timezone-aware datetime object')
+            raise NaiveDateTimeError('Book - Datetime must be timezone-aware')
         if self.updated_at.tzinfo is None:
-            raise ValueError('updated_at must be a timezone-aware datetime object')
+            raise NaiveDateTimeError('Book - Datetime must be timezone-aware')
         if self.created_at > datetime.now(timezone.utc):
-            raise ValueError('Created at cannot be in the future')
+            raise FutureCreatedAtError('Book - Created at cannot be in the future')
         if self.updated_at < self.created_at:
-            raise ValueError('Updated at must be greater than or equal to created at')
+            raise UpdatedBeforeCreatedError(
+                'Book - Updated at must be greater than or equal to created at'
+            )
+        if self.google_book_id or not self.google_book_id.strip():
+            raise EmptyGoogleBookId('Book - Google Book ID cannot be empty')
+        if self.cover_image_url or not self.cover_image_url.strip():
+            raise EmptyCoverImageUrl('Book - Cover image URL cannot be empty')
         # TODO: Evaluate later rules for google_book_id and cover_image_url
 
     def add_review(self, review: DomainReview) -> None:
