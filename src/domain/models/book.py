@@ -1,7 +1,6 @@
 import uuid
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
-from typing import Optional
 
 from src.domain.models.exceptions.book_exceptions import (
     EmptyAuthors,
@@ -35,7 +34,6 @@ class DomainBook:
     updated_at: datetime
     cover_image_url: str
     google_book_id: str
-    user_id_owner: Optional[uuid.UUID] = None
     reviews: list[DomainReview] = field(default_factory=list)
     tags: list[DomainTag] = field(default_factory=list)
 
@@ -64,11 +62,10 @@ class DomainBook:
             raise UpdatedBeforeCreatedError(
                 'Book - Updated at must be greater than or equal to created at'
             )
-        if self.google_book_id or not self.google_book_id.strip():
+        if not self.google_book_id or not self.google_book_id.strip():
             raise EmptyGoogleBookId('Book - Google Book ID cannot be empty')
-        if self.cover_image_url or not self.cover_image_url.strip():
+        if not self.cover_image_url or not self.cover_image_url.strip():
             raise EmptyCoverImageUrl('Book - Cover image URL cannot be empty')
-        # TODO: Evaluate later rules for google_book_id and cover_image_url
 
     def add_review(self, review: DomainReview) -> None:
         """Add a review to the book"""
