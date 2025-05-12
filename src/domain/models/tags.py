@@ -9,6 +9,7 @@ from src.domain.models.exceptions.time_exceptions import (
 )
 
 
+# TODO: Evaluate making this class frozen
 @dataclass
 class DomainTag:
     id: uuid.UUID

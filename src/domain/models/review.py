@@ -15,13 +15,14 @@ from src.domain.models.exceptions.time_exceptions import (
 )
 
 
+# TODO: evaluate later if text oould be empty
 @dataclass
 class DomainReview:
     id: uuid.UUID
     rating: int
     review_text: str
-    book_uid: uuid.UUID
-    user_uid: uuid.UUID
+    book_id: uuid.UUID
+    user_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
 
@@ -38,6 +39,7 @@ class DomainReview:
             raise InvalidRating('Rating must be between 1 and 5')
 
     def __post_init__(self):
+        """Post-initialization validation for the review."""
         self._validate_rating(self.rating)
         self._validate_review_text(self.review_text)
         if self.created_at.tzinfo is None:
