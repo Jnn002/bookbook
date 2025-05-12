@@ -2,7 +2,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 
-from src.domain.models.exceptions.book_exceptions import (
+from src.domain.book_models.exceptions.book_exceptions import (
     EmptyAuthors,
     EmptyCoverImageUrl,
     EmptyGoogleBookId,
@@ -12,13 +12,13 @@ from src.domain.models.exceptions.book_exceptions import (
     InvalidPageCount,
     InvalidPublishedDate,
 )
-from src.domain.models.exceptions.time_exceptions import (
+from src.domain.book_models.exceptions.time_exceptions import (
     FutureCreatedAtError,
     NaiveDateTimeError,
     UpdatedBeforeCreatedError,
 )
-from src.domain.models.review import DomainReview
-from src.domain.models.tags import DomainTag
+from src.domain.book_models.review import DomainReview
+from src.domain.book_models.tags import DomainTag
 
 
 @dataclass

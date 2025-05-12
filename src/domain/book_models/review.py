@@ -3,12 +3,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Optional
 
-from src.domain.models.exceptions.review_exception import (
+from src.domain.book_models.exceptions.review_exception import (
     EmptyReview,
     InvalidRating,
     LengthExceeded,
 )
-from src.domain.models.exceptions.time_exceptions import (
+from src.domain.book_models.exceptions.time_exceptions import (
     FutureCreatedAtError,
     NaiveDateTimeError,
     UpdatedBeforeCreatedError,

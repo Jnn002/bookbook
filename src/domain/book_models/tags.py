@@ -2,8 +2,8 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
-from src.domain.models.exceptions.tags_exception import EmptyName, NameTooLong
-from src.domain.models.exceptions.time_exceptions import (
+from src.domain.book_models.exceptions.tags_exception import EmptyName, NameTooLong
+from src.domain.book_models.exceptions.time_exceptions import (
     FutureCreatedAtError,
     NaiveDateTimeError,
 )
