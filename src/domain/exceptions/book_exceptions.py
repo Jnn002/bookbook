@@ -46,6 +46,12 @@ class EmptyGoogleBookId(BookDomainException):
     pass
 
 
+class EmptyIsbn(BookDomainException):
+    """ISBN cannot be empty"""
+
+    pass
+
+
 class EmptyCoverImageUrl(BookDomainException):
     """Cover image URL cannot be empty"""
 
