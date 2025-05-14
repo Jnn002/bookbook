@@ -8,8 +8,8 @@ from src.domain.exceptions.time_exceptions import (
     NaiveDateTimeError,
     UpdatedBeforeCreatedError,
 )
-from src.domain.review.value_objects.rating_value_vo import RatingVO
-from src.domain.review.value_objects.review_text_vo import ReviewTextVO
+from src.domain.review.value_objects.rating_value import RatingVO
+from src.domain.review.value_objects.review_text import ReviewTextVO
 
 
 # TODO: evaluate later if text could be empty
