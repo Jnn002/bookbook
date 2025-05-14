@@ -7,7 +7,7 @@ from src.domain.exceptions.time_exceptions import (
     NaiveDateTimeError,
     UpdatedBeforeCreatedError,
 )
-from src.domain.tag.value_objects.tag_name_vo import TagNameVO
+from src.domain.tag.value_objects.tag_name import TagNameVO
 
 
 @dataclass

@@ -12,7 +12,7 @@ from src.domain.exceptions.user_exceptions import (
     InvalidEmail,
     InvalidHashedPassword,
 )
-from src.domain.user.value_objects.user_email_vo import UserEmailVO
+from src.domain.user.value_objects.user_email import UserEmailVO
 
 
 @dataclass

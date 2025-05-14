@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import Optional
 
-from src.domain.book.value_objects.isbn_vo import IsbnVO
+from src.domain.book.value_objects.book_isbn import IsbnVO
 from src.domain.exceptions.book_exceptions import (
     EmptyAuthors,
     EmptyCoverImageUrl,
