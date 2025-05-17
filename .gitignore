@@ -9,3 +9,4 @@ pytest.ini
 proto/
 .pytest_cache/
 llm/
+zz_generics/
