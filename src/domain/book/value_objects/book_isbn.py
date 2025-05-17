@@ -5,6 +5,8 @@ from src.domain.exceptions.book_exceptions import EmptyIsbn
 
 @dataclass(frozen=True)
 class IsbnVO:
+    """Value Object for ISBN."""
+
     value: str
 
     def __post_init__(self) -> None:
