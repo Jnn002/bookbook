@@ -38,7 +38,8 @@ class DomainBook:
     updated_at: datetime
     cover_image_url: str
     google_book_id: str
-    isbn: Optional[IsbnVO] = None
+    isbn10: Optional[IsbnVO] = None
+    isbn13: Optional[IsbnVO] = None
     reviews: list[DomainReview] = field(default_factory=list)
     tags: list[DomainTag] = field(default_factory=list)
 
