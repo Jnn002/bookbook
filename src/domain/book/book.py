@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import Optional
 
+from src.domain.book.value_objects.book_description import BookDescription
 from src.domain.book.value_objects.book_isbn import IsbnVO
 from src.domain.exceptions.book_exceptions import (
     EmptyAuthors,
@@ -27,6 +28,7 @@ from src.domain.tag.tags import DomainTag
 class DomainBook:
     id: uuid.UUID
     title: str
+    description: BookDescription
     authors: list[str]
     publisher: str
     published_date: date
@@ -36,7 +38,8 @@ class DomainBook:
     updated_at: datetime
     cover_image_url: str
     google_book_id: str
-    isbn: Optional[IsbnVO] = None
+    isbn10: Optional[IsbnVO] = None
+    isbn13: Optional[IsbnVO] = None
     reviews: list[DomainReview] = field(default_factory=list)
     tags: list[DomainTag] = field(default_factory=list)
 

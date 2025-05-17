@@ -12,7 +12,6 @@ from src.domain.review.value_objects.rating_value import RatingVO
 from src.domain.review.value_objects.review_text import ReviewTextVO
 
 
-# TODO: evaluate later if text could be empty
 @dataclass
 class DomainReview:
     id: uuid.UUID
@@ -51,15 +50,15 @@ class DomainReview:
             LengthExceeded: If new_text exceeds the maximum allowed length.
             InvalidRating: If new_rating is not between 1 and 5.
         """
-        changed = False
+        has_changed = False
 
         if new_text is not None and self.review_text.value != new_text:
             self.review_text = ReviewTextVO(new_text)
-            changed = True
+            has_changed = True
 
         if new_rating is not None and self.rating.value != new_rating:
             self.rating = RatingVO(new_rating)
-            changed = True
+            has_changed = True
 
-        if changed:
+        if has_changed:
             self.updated_at = datetime.now(timezone.utc)

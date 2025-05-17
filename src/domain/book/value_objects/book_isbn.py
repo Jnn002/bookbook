@@ -5,9 +5,10 @@ from src.domain.exceptions.book_exceptions import EmptyIsbn
 
 @dataclass(frozen=True)
 class IsbnVO:
+    """Value Object for ISBN."""
+
     value: str
 
-    # TODO: implement ISBN validation logic
     def __post_init__(self) -> None:
         if not self.value or not self.value.strip():
             raise EmptyIsbn('ISBN cannot be empty')

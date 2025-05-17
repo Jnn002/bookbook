@@ -10,6 +10,18 @@ class EmptyTitle(BookDomainException):
     pass
 
 
+class EmptyDescription(BookDomainException):
+    """Description cannot be empty"""
+
+    pass
+
+
+class InvalidDescriptionLength(BookDomainException):
+    """Description cannot exceed 1000 characters"""
+
+    pass
+
+
 class EmptyAuthors(BookDomainException):
     """Authors cannot be empty"""
 
@@ -54,5 +66,11 @@ class EmptyIsbn(BookDomainException):
 
 class EmptyCoverImageUrl(BookDomainException):
     """Cover image URL cannot be empty"""
+
+    pass
+
+
+class BookNotFound(BookDomainException):
+    """Book not found"""
 
     pass
