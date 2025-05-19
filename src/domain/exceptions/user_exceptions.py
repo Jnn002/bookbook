@@ -22,6 +22,18 @@ class EmptyLastName(UserDomainException):
     pass
 
 
+class EmptyFieldName(UserDomainException):
+    """Field name cannot be empty"""
+
+    pass
+
+
+class InvalidFieldName(UserDomainException):
+    """Field name must contain only letters"""
+
+    pass
+
+
 class InvalidEmail(UserDomainException):
     """Invalid email address"""
 

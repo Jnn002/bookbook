@@ -6,13 +6,13 @@ from datetime import datetime, timezone
 
 from src.domain.exceptions.time_exceptions import NaiveDateTimeError
 from src.domain.exceptions.user_exceptions import (
-    EmptyFirstName,
-    EmptyLastName,
+    EmptyFieldName,
     EmptyUsername,
     InvalidEmail,
     InvalidHashedPassword,
 )
 from src.domain.user.value_objects.user_email import UserEmailVO
+from src.domain.user.value_objects.user_name_field import FieldName
 
 
 @dataclass
@@ -23,20 +23,20 @@ class DomainUser:
     Attributes:
         id (UUID): Unique identifier for the user.
         username (str): Unique username for the user.
-        first_name (str): User's first name.
-        last_name (str): User's last name.
-        is_verified (bool): Indicates if the user is verified.
         email (UserEmailVO): User's email address.
+        first_name (FieldName): User's first name.
+        last_name (FieldName): User's last name.
         hashed_password (str): User's hashed password.
         created_at (datetime): Timestamp of when the user was created.
         updated_at (datetime): Timestamp of the user's last update.
+        is_verified (bool): Indicates if the user is verified.
     """
 
     id: uuid.UUID
     username: str
     email: UserEmailVO
-    first_name: str
-    last_name: str
+    first_name: FieldName
+    last_name: FieldName
     hashed_password: str
     updated_at: datetime
     created_at: datetime
@@ -51,10 +51,10 @@ class DomainUser:
         """
         if not self.username or not self.username.strip():
             raise EmptyUsername('User - Username cannot be empty')
-        if not self.first_name or not self.first_name.strip():
-            raise EmptyFirstName('User - First name cannot be empty')
-        if not self.last_name or not self.last_name.strip():
-            raise EmptyLastName('User - Last name cannot be empty')
+        if not self.first_name:
+            raise EmptyFieldName('User - First name cannot be empty')
+        if not self.last_name:
+            raise EmptyFieldName('User - Last name cannot be empty')
         if not self.email or not isinstance(self.email, UserEmailVO):
             raise InvalidEmail('User - Invalid email address')
         if not self.hashed_password or not isinstance(self.hashed_password, str):
