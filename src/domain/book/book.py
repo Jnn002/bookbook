@@ -5,14 +5,15 @@ from typing import Optional
 
 from src.domain.book.value_objects.book_description import BookDescription
 from src.domain.book.value_objects.book_isbn import IsbnVO
+from src.domain.book.value_objects.book_pagecount import BookPageCount
+from src.domain.book.value_objects.book_subtitle import BookSubtitle
+from src.domain.book.value_objects.book_title import BookTitle
 from src.domain.exceptions.book_exceptions import (
     EmptyAuthors,
     EmptyCoverImageUrl,
     EmptyGoogleBookId,
     EmptyLanguage,
     EmptyPublisher,
-    EmptyTitle,
-    InvalidPageCount,
     InvalidPublishedDate,
 )
 from src.domain.exceptions.time_exceptions import (
@@ -27,12 +28,13 @@ from src.domain.tag.tags import DomainTag
 @dataclass
 class DomainBook:
     id: uuid.UUID
-    title: str
+    title: BookTitle
+    subtitle: Optional[BookSubtitle]
     description: BookDescription
     authors: list[str]
     publisher: str
     published_date: date
-    page_count: int
+    page_count: BookPageCount
     language: str
     created_at: datetime
     updated_at: datetime
@@ -44,8 +46,6 @@ class DomainBook:
     tags: list[DomainTag] = field(default_factory=list)
 
     def __post_init__(self) -> None:
-        if not self.title or not self.title.strip():
-            raise EmptyTitle('Book - Title cannot be empty')
         if not self.authors or not all(
             author and author.strip() for author in self.authors
         ):
@@ -54,8 +54,6 @@ class DomainBook:
             raise EmptyPublisher('Book - Publisher cannot be empty')
         if self.published_date > date.today():
             raise InvalidPublishedDate('Book - Published date cannot be in the future')
-        if self.page_count <= 0:
-            raise InvalidPageCount('Book - Page count must be positive')
         if not self.language or not self.language.strip():
             raise EmptyLanguage('Book - Language cannot be empty')
         if self.created_at.tzinfo is None:

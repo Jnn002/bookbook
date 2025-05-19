@@ -10,6 +10,12 @@ class EmptyTitle(BookDomainException):
     pass
 
 
+class EmptySubtitle(BookDomainException):
+    """Subtitle cannot be empty"""
+
+    pass
+
+
 class EmptyDescription(BookDomainException):
     """Description cannot be empty"""
 

@@ -12,15 +12,15 @@ class BookDescription:
     BookDescription is a value object that represents the description of a book.
     """
 
-    description: str
+    value: str
 
     def __post_init__(self) -> None:
-        if not self.description or not self.description.strip():
+        if not self.value or not self.value.strip():
             raise EmptyDescription('Book - Description cannot be empty')
-        if len(self.description) > 1000:
+        if len(self.value) > 1000:
             raise InvalidDescriptionLength(
                 'Book - Description cannot exceed 1000 characters'
             )
 
     def __str__(self) -> str:
-        return self.description
+        return self.value
