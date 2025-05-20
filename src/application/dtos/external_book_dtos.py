@@ -9,13 +9,13 @@ class ExternalIndustryIdentifierDTO(BaseModel):
 
 
 class ExternalImageLinksDTO(BaseModel):
-    smallThumbnail: Optional[HttpUrl] = None
     thumbnail: Optional[HttpUrl] = None
 
 
 class ExternalVolumeInfoDTO(BaseModel):
     title: str
     subtitle: Optional[str] = None
+    description: Optional[str] = None
     authors: list[str] = Field(default_factory=list)
     publisher: Optional[str] = None
     publishedDate: Optional[str] = None
@@ -23,7 +23,7 @@ class ExternalVolumeInfoDTO(BaseModel):
     industryIdentifiers: list[ExternalIndustryIdentifierDTO] = Field(
         default_factory=list
     )
-    pagecount: Optional[int] = 0
+    pageCount: Optional[int] = None
     averageRating: Optional[float] = None
     ratingsCount: Optional[int] = None
     language: Optional[str] = None
