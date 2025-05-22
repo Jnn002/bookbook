@@ -17,7 +17,7 @@ class ReviewRepository(ABC):
         pass
 
     @abstractmethod
-    async def delete_review(self, review_id: uuid.UUID) -> None:
+    async def delete_review(self, review_id: uuid.UUID):
         """
         Delete a review from the repository by its ID.
 
@@ -32,6 +32,18 @@ class ReviewRepository(ABC):
 
         :param review_id: The ID of the review to retrieve.
         :return: An instance of DomainReview if found, otherwise None.
+        """
+        pass
+
+    @abstractmethod
+    async def get_reviews_by_book_google_id(
+        self, book_google_id: str, limit: int = 10, offset: int = 0
+    ) -> list[DomainReview]:
+        """
+        Retrieve all reviews for a specific book by its Google ID.
+
+        :param book_google_id: The Google ID of the book whose reviews to retrieve.
+        :return: A list of DomainReview instances.
         """
         pass
 

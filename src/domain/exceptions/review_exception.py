@@ -32,3 +32,9 @@ class ReviewNotFoundOrUserIsNotOwner(ReviewDomainException):
     """Review not found or user is not the owner."""
 
     pass
+
+
+class PermissionDeniedError(ReviewDomainException):
+    """User not authorized to perform this action."""
+
+    pass

@@ -150,7 +150,68 @@ class BookApplicationService:
             query=query, page_index=page_index, page_size=page_size
         )
 
-        await self._cache.set(
-            cache_key, response.model_dump(), expire_seconds=3600
-        )  # Cachear por 1 hora
+        await self._cache.set(cache_key, response.model_dump(), expire_seconds=3600)
         return response
+
+    async def get_book_details_for_display(
+        self,
+        google_book_id: str,
+        request_user_id: Optional[uuid.UUID] = None,
+    ) -> dict:
+        external_data_dto = (
+            await self._external_book_service.get_book_details_by_external_id(
+                google_book_id
+            )
+        )
+        if not external_data_dto:
+            raise ValueError(
+                f'Book with Google ID {google_book_id} not found in external service.'
+            )
+
+        internal_book_domain = await self.register_book_from_google_if_not_exists(
+            google_book_id
+        )
+
+        local_reviews_domain = await self._review_repository.get_reviews_by_book_id(
+            internal_book_domain.id
+        )
+
+        is_favorite_by_user = False
+        if request_user_id:
+            is_favorite_by_user = (
+                await self._favorite_repository.is_book_favorited_by_user(
+                    user_id=request_user_id, book_id=internal_book_domain.id
+                )
+            )
+
+        reviews_for_response = [
+            {
+                'id': rev.id,
+                'rating': rev.rating.value,
+                'review_text': rev.review_text.value,
+                'user_id': rev.user_id,
+                'created_at': rev.created_at.isoformat(),
+                'updated_at': rev.updated_at.isoformat(),
+            }
+            for rev in local_reviews_domain
+        ]
+
+        return {
+            'internal_system_id': internal_book_domain.id,
+            'google_book_id': external_data_dto.id,
+            'title': external_data_dto.volumeInfo.title,
+            'authors': external_data_dto.volumeInfo.authors,
+            'publisher': external_data_dto.volumeInfo.publisher,
+            'published_date_str': external_data_dto.volumeInfo.publishedDate,
+            'description': external_data_dto.volumeInfo.description,
+            'cover_image_url': str(external_data_dto.volumeInfo.imageLinks.thumbnail)
+            if external_data_dto.volumeInfo.imageLinks
+            and external_data_dto.volumeInfo.imageLinks.thumbnail
+            else 'default_cover_image_url',
+            'page_count': external_data_dto.volumeInfo.pageCount,
+            'language': external_data_dto.volumeInfo.language,
+            'local_reviews': reviews_for_response,
+            'is_favorited_by_current_user': is_favorite_by_user,
+        }
+
+    # TODO: refactor all this methods, check isbn parsing and cover image url implementation
