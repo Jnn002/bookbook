@@ -44,3 +44,9 @@ class InvalidHashedPassword(UserDomainException):
     """Invalid hashed password"""
 
     pass
+
+
+class UserNotFound(UserDomainException):
+    """User not found"""
+
+    pass
