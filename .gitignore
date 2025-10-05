@@ -10,3 +10,4 @@ proto/
 .pytest_cache/
 llm/
 zz_generics/
+.vscode/mcp.json

@@ -9,5 +9,12 @@
     "chat.instructionsFilesLocations": {
         ".github/instructions": true,
     },
-    "github.copilot.chat.codeGeneration.useInstructionFiles": true
+    "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+    "chat.mcp.serverSampling": {
+        "bookbook/.vscode/mcp.json: context7": {
+            "allowedModels": [
+                "copilot/claude-sonnet-4.5"
+            ]
+        }
+    }
 }
